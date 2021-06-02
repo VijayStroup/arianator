@@ -1,4 +1,5 @@
 import asyncio
+import io
 import random
 import re
 import sys
@@ -69,7 +70,7 @@ class Ariana:
 
         img_url = img_url.group(0).replace('amp;', '')
 
-        return img_url
+        return img_url[:-1]
 
     @staticmethod
     async def request(session: aiohttp.ClientSession, url: str):
@@ -87,7 +88,17 @@ class Ariana:
 
 @bot.command(aliases=['ariana', 'ari'])
 async def queen(ctx: commands.Context):
-    await ctx.send('queen')
+    ari = await ariana.get_ari()
+    if not ari:
+        ctx.reply('No Ariana Available.')
+        return
+    
+    async with aiohttp.ClientSession() as session:
+        print(ari)
+        async with session.get(ari) as r:
+            if r.status != 200: return
+            ari = io.BytesIO(await r.read())
+            await ctx.reply(file=discord.File(ari, filename='ari.jpg'))
 
 
 if __name__ == '__main__':
