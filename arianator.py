@@ -1,4 +1,5 @@
 import asyncio
+import random
 import re
 import sys
 import aiohttp
@@ -21,17 +22,17 @@ async def on_ready():
         if not data:
             print('error requesting url')
             return
-        
-        pagesSearch = re.search(ariana.rePages, data[0])
-        if not pagesSearch:
-            print('error getting total pages')
-            return
 
-        try:
-            ariana.nPages = int(pagesSearch.group(0).split('>')[1].split('<')[0])
-        except ValueError:
-            print('error parsing pages int')
-            return
+    pages_search = re.search(ariana.re_pages, data[0])
+    if not pages_search:
+        print('error getting total pages')
+        return
+
+    try:
+        ariana.n_pages = int(pages_search.group(0).split('>')[1].split('<')[0])
+    except ValueError:
+        print('error parsing pages int')
+        return
 
     print(f'Logged in as {bot.user}')
 
@@ -39,13 +40,37 @@ async def on_ready():
 class Ariana:
     def __init__(self):
         self.url = 'https://www.gettyimages.com/photos/ariana-grande?page='
-        self.reImgs = re.compile('/<img class="gallery-asset__thumb gallery-mosaic-asset__thumb"(.*?)>/g')
-        self.reThumb = re.compile('/https:\/\/(.*?)"/g')
-        self.rePages = re.compile('<span class="PaginationRow-module__lastPage___2pChH">(.*?)<\/span>')
-        self.rePage = re.compile('/>(.*?)</g')
-        self.rePage = re.compile('/>(.*?)</g')
-        self.nPages = 0
-    
+        self.re_imgs = re.compile('<img class="gallery-asset__thumb gallery-mosaic-asset__thumb"(.*?)>')
+        self.re_thumb = re.compile('https://(.*?)"')
+        self.re_pages = re.compile('<span class="PaginationRow-module__lastPage___2pChH">(.*?)<\/span>')
+        self.n_pages = 0
+
+    async def get_ari(self):
+        page = random.randint(1, self.n_pages)
+
+        async with aiohttp.ClientSession() as session:
+            coroutines = [self.request(session, self.url + str(page))]
+            data = await asyncio.gather(*coroutines)
+            if not data:
+                print('error requesting url')
+                return
+
+        img_search = re.findall(self.re_imgs, data[0])
+        if not img_search:
+            print('error img_search')
+            return
+
+        n = random.randint(0, len(img_search) - 1)
+
+        img_url = re.search(self.re_thumb, img_search[n])
+        if not img_url:
+            print('error img_url')
+            return
+
+        img_url = img_url.group(0).replace('amp;', '')
+
+        return img_url
+
     @staticmethod
     async def request(session: aiohttp.ClientSession, url: str):
         """Preform asynchronous http request"""
