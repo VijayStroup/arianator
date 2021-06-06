@@ -8,7 +8,7 @@ import discord
 from discord.ext import commands
 
 bot = commands.Bot(
-    command_prefix='yaaas ',
+    command_prefix='yas ',
     activity=discord.Activity(type=discord.ActivityType.listening, name='Positions')
 )
 bot.remove_command('help')
@@ -90,18 +90,25 @@ class Ariana:
 async def queen(ctx: commands.Context):
     ari = await ariana.get_ari()
     if not ari:
-        ctx.reply('No Ariana Available.')
+        await ctx.reply('No Ariana Available.')
         return
     
     async with aiohttp.ClientSession() as session:
-        print(ari)
         async with session.get(ari) as r:
             if r.status != 200: return
             ari = io.BytesIO(await r.read())
             await ctx.reply(file=discord.File(ari, filename='ari.jpg'))
 
 
+@bot.command()
+async def help(ctx: commands.Context):
+    await ctx.send(embed=discord.Embed(
+        title='Arianator Help',
+        description='yas <queen|ari|ariana>',
+        color=0xe91e63
+    ))
+
+
 if __name__ == '__main__':
     ariana = Ariana()
-    token = sys.argv[1]
-    bot.run(token)
+    bot.run(sys.argv[1])
