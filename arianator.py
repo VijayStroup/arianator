@@ -8,7 +8,7 @@ import discord
 from discord.ext import commands
 
 bot = commands.Bot(
-    command_prefix='yas ',
+    command_prefix=['yas ', 'Yas '],
     activity=discord.Activity(type=discord.ActivityType.listening, name='Positions')
 )
 bot.remove_command('help')
